@@ -1,0 +1,9 @@
+- name: install java
+  hosts: all
+  become: yes
+  tasks:
+    - name: update packages and install java
+      ansible.builtin.apt:
+        name: openjdk-17-jdk openjdk-17-jre
+        state: present
+        update_cache: yes

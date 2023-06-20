@@ -1,0 +1,59 @@
+---
+- name: Install Apache Tomcat 10
+  hosts: your_host
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      when: ansible_os_family == 'ubuntu'
+
+    - name: Install Java
+      apt:
+        name: openjdk-11-jdk
+        state: present
+      when: ansible_os_family == 'ubuntu'
+
+    - name: Install Java
+      yum:
+        name: java-11-openjdk-devel
+        state: present
+      when: ansible_os_family == 'ubuntu'
+
+    - name: Download Tomcat 10
+      get_url:
+        url: "https://downloads.apache.org/tomcat/tomcat-10/v10.0.10/bin/apache-tomcat-10.0.10.tar.gz"
+        dest: "/tmp/apache-tomcat-10.0.10.tar.gz"
+
+    - name: Extract Tomcat archive
+      unarchive:
+        src: "/tmp/apache-tomcat-10.0.10.tar.gz"
+        dest: "/opt/"
+        remote_src: yes
+
+    - name: Set Tomcat owner and permissions
+      file:
+        path: "/opt/apache-tomcat-10.0.10"
+        owner: your_user
+        group: your_group
+        mode: "0755"
+
+    - name: Configure Tomcat environment variables
+      lineinfile:
+        dest: "/etc/environment"
+        line: 'CATALINA_HOME="/opt/apache-tomcat-10.0.10"'
+        state: present
+
+    - name: Start Tomcat service
+      systemd:
+        name: tomcat
+        enabled: true
+        state: started
+      notify:
+        - Reload Systemd
+
+  handlers:
+    - name: Reload Systemd
+      systemd:
+        daemon_reload: yes
